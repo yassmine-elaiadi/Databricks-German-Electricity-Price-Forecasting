@@ -1,0 +1,17 @@
+# Local Python environment (large, rebuildable from pyproject.toml + uv.lock)
+.venv/
+
+# Databricks extension's local cache and state
+.databricks/
+
+# VS Code settings with paths specific to your laptop
+.vscode/
+
+# Python's compiled bytecode cache
+__pycache__/
+
+# Local secrets (API keys, tokens), never on GitHub
+.env
+
+# Personal test file
+scratch.py
