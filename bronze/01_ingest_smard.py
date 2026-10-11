@@ -1,8 +1,8 @@
-"""Bronze: download one SMARD weekly block and save it as raw JSON in the Volume."""
-
+"""Bronze: download all SMARD weekly blocks and save them as raw JSON in the Volume."""
 
 import json
 import os
+import time
 import requests
 
 FILTER_ID = 4169
@@ -10,35 +10,41 @@ REGION = "DE-LU"
 RESOLUTION = "hour"
 BASE_URL = "https://www.smard.de/app/chart_data"
 OUTPUT_DIR = "/Volumes/energy_lakehouse/bronze/raw_files/smard"
+REFRESH_LAST_N = 2   # always re-download the newest weeks (they may be incomplete)
 
 # --- Part B: index ---
 index_url = f"{BASE_URL}/{FILTER_ID}/{REGION}/index_{RESOLUTION}.json"
-
 response = requests.get(index_url, timeout=30)
 response.raise_for_status()
-
 timestamps = response.json()["timestamps"]
-ts = timestamps[-1]
-print(len(timestamps), timestamps[0], ts)
+print(len(timestamps), "weeks available")
 
-# --- Part C: one block ---
-block_url = f"{BASE_URL}/{FILTER_ID}/{REGION}/{FILTER_ID}_{REGION}_{RESOLUTION}_{ts}.json"
-
-response = requests.get(block_url, timeout=30)
-response.raise_for_status()
-
-data = response.json()
-
-# --- Part D: save ---
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-file_name = f"{FILTER_ID}_{REGION}_{RESOLUTION}_{ts}.json"
-path = f"{OUTPUT_DIR}/{file_name}"
+recent = timestamps[-REFRESH_LAST_N:]     # the newest 2 week numbers
+downloaded = 0
+skipped = 0
 
-with open(path, "w") as f:
-    json.dump(data, f)
+# --- Loop over all weeks ---
+for ts in timestamps:
+    file_name = f"{FILTER_ID}_{REGION}_{RESOLUTION}_{ts}.json"
+    path = f"{OUTPUT_DIR}/{file_name}"
 
-# --- Part E: check ---
-series = data["series"]
-missing = [p for p in series if p[1] is None]
-print("Saved:", path)
-print(len(series), "points,", len(missing), "missing")
+    # skip old weeks we already have
+    if os.path.exists(path) and ts not in recent:
+        skipped += 1
+        continue
+
+    # download one week
+    block_url = f"{BASE_URL}/{FILTER_ID}/{REGION}/{file_name}"
+    response = requests.get(block_url, timeout=30)
+    response.raise_for_status()
+    data = response.json()
+
+    # save it unchanged
+    with open(path, "w") as f:
+        json.dump(data, f)
+    downloaded += 1
+
+    time.sleep(0.2)   # be polite to SMARD's server
+
+print("Downloaded:", downloaded, "| Skipped:", skipped)
