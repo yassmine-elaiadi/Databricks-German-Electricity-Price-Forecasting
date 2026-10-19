@@ -16,7 +16,7 @@ REGION = "DE-LU"
 RESOLUTION = "hour"
 BASE_URL = "https://www.smard.de/app/chart_data"
 OUTPUT_DIR = "/Volumes/energy_lakehouse/bronze/raw_files/smard"
-REFRESH_LAST_N = 2
+REFRESH_LAST_N = 3
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

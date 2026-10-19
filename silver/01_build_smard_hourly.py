@@ -28,5 +28,19 @@ w = Window.orderBy("ts_utc")
 df = df.withColumn("load_prev", F.lag("load", 1).over(w))    # load of the hour before
 df = df.withColumn("load_next", F.lead("load", 1).over(w))   # load of the hour after
 
+df = df.withColumn("load", F.coalesce(
+    F.col("load"),                                   # plan 1: keep the real value
+    (F.col("load_prev") + F.col("load_next")) / 2,   # plan 2: average of the neighbours
+    F.col("load_next")                               # plan 3: only the hour after
+))
+
 #df.filter(F.col("ts_berlin").between("2018-10-08 00:00:00", "2018-10-08 05:00:00")).orderBy("ts_utc").show()
-df.filter( (F.col("load").isNull()) & (F.col("ts_utc") < "2026-01-01") ).orderBy("ts_utc").show()
+#df.filter( (F.col("load").isNull()) & (F.col("ts_utc") < "2026-01-01") ).orderBy("ts_utc").show()
+
+#df.filter(F.col("ts_utc") == "2018-10-08 16:00:00").show()
+df = df.drop("load_prev", "load_next")
+#df.orderBy("ts_utc").show(3)
+
+
+# 3. Save as a Delta table
+df.write.mode("overwrite").saveAsTable("energy_lakehouse.silver.smard_hourly")
