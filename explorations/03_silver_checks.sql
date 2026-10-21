@@ -20,3 +20,26 @@ FROM (
     FROM energy_lakehouse.silver.smard_hourly
 )
 WHERE timestampdiff(HOUR, prev_hour, ts_utc) > 1
+
+
+-- Count the NULLs per column
+
+
+SELECT
+    COUNT_IF(price IS NULL) AS price_nulls,
+    COUNT_IF(load IS NULL) AS load_nulls,
+    COUNT_IF(wind_onshore IS NULL) AS wind_onshore_nulls,
+    COUNT_IF(wind_offshore IS NULL) AS wind_offshore_nulls,
+    COUNT_IF(solar IS NULL) AS solar_nulls
+FROM energy_lakehouse.silver.smard_hourly
+
+--Find where the NULLs are 
+-- What are the first and last hours where load is NULL?
+
+
+SELECT 
+    MIN(ts_utc) as first_null,
+    MAX(ts_utc) as last_null,
+    COUNT(*) as n_rows
+FROM energy_lakehouse.silver.smard_hourly
+WHERE load IS NULL
