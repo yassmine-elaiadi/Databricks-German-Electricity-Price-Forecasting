@@ -2,6 +2,10 @@
 name = "Databricks-German-Electricity-Price-Forecasting"
 version = "0.0.0"
 requires-python = "==3.12.*"
+dependencies = [
+    "mlflow>=3.8.1",
+    "scikit-learn>=1.6.1",
+]
 
 [dependency-groups]
 dev = [
