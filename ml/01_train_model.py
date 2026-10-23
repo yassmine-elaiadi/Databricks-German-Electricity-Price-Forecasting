@@ -4,6 +4,9 @@ import mlflow
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor
+from mlflow.models import infer_signature
+
+
 
 EXPERIMENT = "/Users/yassminelaiadi@gmail.com/german_electricity_price_forecasting"
 SOURCE_TABLE = "energy_lakehouse.gold.price_features_hourly"
@@ -17,6 +20,7 @@ FEATURES = [
 
 spark = DatabricksSession.builder.serverless().getOrCreate()
 mlflow.set_tracking_uri("databricks://elaiadi_personal")
+mlflow.set_registry_uri("databricks-uc")
 mlflow.set_experiment(EXPERIMENT)
 df = spark.table(SOURCE_TABLE).toPandas()
 #print(df.shape)    #(70440, 14)
@@ -67,7 +71,14 @@ with mlflow.start_run(run_name="hist_gradient_boosting"):
     mlflow.log_param("model_type", "HistGradientBoostingRegressor")   # which model
     mlflow.log_param("cutoff", CUTOFF)                   # which test period
     mlflow.log_metric("mae_test", mae)                   # the score
-    mlflow.sklearn.log_model(model, name="model")        # the trained model
+    signature = infer_signature(X_test, pred)            # input = 11 features, output = price
+    mlflow.sklearn.log_model(
+        model,
+        name="model",
+        signature=signature,
+        input_example=X_test.head(5),                     # 5 example rows, stored with the model
+        registered_model_name="energy_lakehouse.gold.price_forecaster",
+    )
 
 print(f"HGB MAE: {mae:.2f}")
 
