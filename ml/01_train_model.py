@@ -3,7 +3,7 @@ import pandas as pd
 import mlflow
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
-
+from sklearn.ensemble import HistGradientBoostingRegressor
 
 EXPERIMENT = "/Users/yassminelaiadi@gmail.com/german_electricity_price_forecasting"
 SOURCE_TABLE = "energy_lakehouse.gold.price_features_hourly"
@@ -43,15 +43,31 @@ y_test  = test[TARGET]
 
 
 #print(mae)
-with mlflow.start_run(run_name="linear_regression"):
-    model = LinearRegression()                  # create an empty model
+# with mlflow.start_run(run_name="linear_regression"):
+#     model = LinearRegression()                  # create an empty model
+#     model.fit(X_train, y_train)                 # learn from the TRAIN data
+#     pred = model.predict(X_test)                # guess prices for the TEST hours
+#     mae = mean_absolute_error(y_test, pred)     # compare real vs guess
+
+#     mlflow.log_param("model_type", "LinearRegression")   # which model
+#     mlflow.log_param("cutoff", CUTOFF)                   # which test period
+#     mlflow.log_metric("mae_test", mae)                   # the score
+#     mlflow.sklearn.log_model(model, name="model")        # the trained model
+
+# print(f"MAE: {mae:.2f}")
+
+#############################################################################
+
+with mlflow.start_run(run_name="hist_gradient_boosting"):
+    model = HistGradientBoostingRegressor(random_state=42)                  # create an empty model
     model.fit(X_train, y_train)                 # learn from the TRAIN data
     pred = model.predict(X_test)                # guess prices for the TEST hours
     mae = mean_absolute_error(y_test, pred)     # compare real vs guess
 
-    mlflow.log_param("model_type", "LinearRegression")   # which model
+    mlflow.log_param("model_type", "HistGradientBoostingRegressor")   # which model
     mlflow.log_param("cutoff", CUTOFF)                   # which test period
     mlflow.log_metric("mae_test", mae)                   # the score
     mlflow.sklearn.log_model(model, name="model")        # the trained model
 
-print(f"MAE: {mae:.2f}")
+print(f"HGB MAE: {mae:.2f}")
+
