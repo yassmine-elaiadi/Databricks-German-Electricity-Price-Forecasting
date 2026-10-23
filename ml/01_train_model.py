@@ -20,7 +20,7 @@ FEATURES = [
 
 spark = DatabricksSession.builder.serverless().getOrCreate()
 mlflow.set_tracking_uri("databricks://elaiadi_personal")
-mlflow.set_registry_uri("databricks-uc")
+mlflow.set_registry_uri("databricks-uc://elaiadi_personal")
 mlflow.set_experiment(EXPERIMENT)
 df = spark.table(SOURCE_TABLE).toPandas()
 #print(df.shape)    #(70440, 14)
