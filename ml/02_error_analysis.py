@@ -56,4 +56,16 @@ worst_days = test.groupby("date")["error"].mean().sort_values(ascending=False).h
 
 #############################################################################
 day = test[test["date"] == pd.to_datetime("2025-11-25").date()]
-print(day.sort_values("ts_utc")[["hour", TARGET, "pred", "error", "price_lag_24h"]].round(1).to_string())
+#print(day.sort_values("ts_utc")[["hour", TARGET, "pred", "error", "price_lag_24h"]].round(1).to_string())
+# print(day.sort_values("ts_utc")[["hour", TARGET, "pred", "error",
+    #   "price_lag_24h", "price_lag_168h", "load_lag_48h"]].round(1).to_string())
+
+test["signed_error"] = test[TARGET] - test["pred"]      # real - guess, sign kept (+ = model too low)
+bad = test[test["date"].isin(worst_days.index)]          # only the 10 worst days
+print(bad.groupby("date")["signed_error"].mean().round(2))
+
+# Findings (signed error, + = model too low):
+# - spikes (25 Nov, 14/22 Sep) -> too low; holidays (1 Jan, Easter, 1 May) -> too high
+# - also too high on weather-driven crash days (26 Apr, 2 Jul, 20/21 Sep)
+# - signed ~ absolute -> whole day misread in one direction
+# - Sep 20-22: model is "one day late" at turning points (leans on price_lag_24h)
