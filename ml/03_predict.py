@@ -1,16 +1,19 @@
+import inspect
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # repo root
+
+THIS_FILE = os.path.abspath(inspect.currentframe().f_code.co_filename)   # works on laptop AND as a job (no __file__ there)
+sys.path.append(os.path.dirname(os.path.dirname(THIS_FILE)))             # repo root
 
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from databricks.connect import DatabricksSession
 from pyspark.sql import functions as F
 
 from features.feature_logic import FEATURES, build_features
 import mlflow
 from mlflow import MlflowClient
+from common.env import get_spark, setup_mlflow
 
 SILVER_TABLE = "energy_lakehouse.silver.smard_hourly"
 MODEL_NAME = "energy_lakehouse.gold.price_forecaster"
@@ -18,7 +21,8 @@ MODEL_URI = f"models:/{MODEL_NAME}@champion"
 OUTPUT_TABLE = "energy_lakehouse.gold.price_predictions"
 BERLIN = ZoneInfo("Europe/Berlin")
 
-spark = DatabricksSession.builder.serverless().getOrCreate()
+spark = get_spark()                                  # laptop or Databricks, decided by common/env.py
+
 
 # --- 1. Tomorrow's hours (D+1) in UTC -----------------------------------------
 today = datetime.now(BERLIN).date()
@@ -68,8 +72,7 @@ if missing:
 
 
 # --- 3. Predict with @champion -------------------------------------------------
-mlflow.set_tracking_uri("databricks://elaiadi_personal")       # laptop profile (Phase 5.3: change for the job)
-mlflow.set_registry_uri("databricks-uc://elaiadi_personal")
+setup_mlflow()                                       # laptop profile or job login
 
 pdf = pred_rows.select(["ts_utc", "ts_berlin"] + FEATURES).toPandas()   # 24 rows -> pandas
 model = mlflow.sklearn.load_model(MODEL_URI)
