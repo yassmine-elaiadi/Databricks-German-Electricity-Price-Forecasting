@@ -46,6 +46,27 @@ pred_rows = df.filter(F.col("ts_utc") >= start)                      # keep only
 
 
 
+# --- Guards: fail loudly instead of predicting with wrong clues ----------------
+last_hour = start - timedelta(hours=1)                       # D 23:00 Berlin, in UTC
+if silver.filter(F.col("ts_utc") == F.lit(last_hour)).count() != 1:
+    raise ValueError(f"Silver doesn't reach {last_hour} UTC -> gap before D+1, lags would shift")
+
+n = pred_rows.count()
+if n != len(hours):
+    raise ValueError(f"Expected {len(hours)} rows for D+1, got {n}")
+
+null_counts = pred_rows.select(
+    [F.sum(F.col(c).isNull().cast("int")).alias(c) for c in FEATURES]
+).collect()[0].asDict()
+missing = {c: k for c, k in null_counts.items() if k > 0}
+if missing:
+    raise ValueError(f"NULL features for D+1: {missing}")    # e.g. solar not published yet
+
+
+
+
+
+
 # --- 3. Predict with @champion -------------------------------------------------
 mlflow.set_tracking_uri("databricks://elaiadi_personal")       # laptop profile (Phase 5.3: change for the job)
 mlflow.set_registry_uri("databricks-uc://elaiadi_personal")

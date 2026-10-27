@@ -6,17 +6,15 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.ensemble import HistGradientBoostingRegressor
 from mlflow.models import infer_signature
 
-
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # repo root
+from features.feature_logic import FEATURES
 
 EXPERIMENT = "/Users/yassminelaiadi@gmail.com/german_electricity_price_forecasting"
 SOURCE_TABLE = "energy_lakehouse.gold.price_features_hourly"
 CUTOFF = "2025-09-30 22:00:00"              # 1 Oct 2025 00:00 Berlin = first test hour (UTC)
 TARGET = "price"
-FEATURES = [
-    "hour", "day_of_week", "month", "is_weekend",
-    "price_lag_24h", "price_lag_48h", "price_lag_168h",
-    "load_lag_48h", "wind_onshore_lag_48h", "wind_offshore_lag_48h", "solar_lag_48h",
-    ]
 
 spark = DatabricksSession.builder.serverless().getOrCreate()
 mlflow.set_tracking_uri("databricks://elaiadi_personal")

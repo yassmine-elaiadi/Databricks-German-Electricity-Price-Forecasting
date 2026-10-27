@@ -3,16 +3,15 @@ import pandas as pd
 import mlflow
 from sklearn.metrics import mean_absolute_error
 
-
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # repo root
+from features.feature_logic import FEATURES
 
 SOURCE_TABLE = "energy_lakehouse.gold.price_features_hourly"
 CUTOFF = "2025-09-30 22:00:00"              # 1 Oct 2025 00:00 Berlin = first test hour (UTC)
 TARGET = "price"
-FEATURES = [
-    "hour", "day_of_week", "month", "is_weekend",
-    "price_lag_24h", "price_lag_48h", "price_lag_168h",
-    "load_lag_48h", "wind_onshore_lag_48h", "wind_offshore_lag_48h", "solar_lag_48h",
-    ]
+
 
 MODEL_URI = "models:/energy_lakehouse.gold.price_forecaster@champion"
 
