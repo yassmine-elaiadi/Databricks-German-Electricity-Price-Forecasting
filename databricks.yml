@@ -77,10 +77,13 @@ resources:
               - scikit-learn==1.6.1
               - mlflow==3.8.1
 
+              
 targets:
   dev:
     mode: development
     default: true
+    presets:
+      trigger_pause_status: UNPAUSED     # run the 08:00 schedule even in dev mode
     workspace:
       host: https://dbc-ca310085-9983.cloud.databricks.com
 
