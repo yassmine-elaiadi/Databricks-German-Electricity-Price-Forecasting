@@ -36,6 +36,7 @@ resources:
       schedule:
         quartz_cron_expression: "0 0 8 * * ?"     # every day 08:00
         timezone_id: Europe/Berlin
+        pause_status: UNPAUSED                    # explicit: run even though the target is dev
       tasks:
         - task_key: ingest
           spark_python_task:
@@ -77,13 +78,11 @@ resources:
               - scikit-learn==1.6.1
               - mlflow==3.8.1
 
-              
+
 targets:
   dev:
     mode: development
     default: true
-    presets:
-      trigger_pause_status: UNPAUSED     # run the 08:00 schedule even in dev mode
     workspace:
       host: https://dbc-ca310085-9983.cloud.databricks.com
 
