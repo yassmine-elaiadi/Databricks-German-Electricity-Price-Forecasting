@@ -1,10 +1,16 @@
 """Bronze: read all raw SMARD JSON files and save them as one Delta table."""
+import inspect
+import os
+import sys
 
-from databricks.connect import DatabricksSession
+THIS_FILE = os.path.abspath(inspect.currentframe().f_code.co_filename)   # works on laptop AND as a job
+sys.path.append(os.path.dirname(os.path.dirname(THIS_FILE)))             # repo root
+
+from common.env import get_spark
+
 from pyspark.sql import functions as F
 
-spark = DatabricksSession.builder.serverless().getOrCreate()
-
+spark = get_spark()
 RAW_PATH = "/Volumes/energy_lakehouse/bronze/raw_files/smard/*.json"
 TABLE = "energy_lakehouse.bronze.smard_raw"
 SCHEMA = "meta_data STRUCT<version: INT, created: BIGINT>, series ARRAY<ARRAY<DOUBLE>>"

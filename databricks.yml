@@ -30,11 +30,42 @@ resources:
         - environment_key: default
           spec:
             environment_version: "5"
-      
-    predict:
-      name: predict
+
+    daily_pipeline:
+      name: daily_pipeline
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?"     # every day 08:00
+        timezone_id: Europe/Berlin
       tasks:
+        - task_key: ingest
+          spark_python_task:
+            python_file: ./bronze/01_ingest_smard.py
+          environment_key: default
+
+        - task_key: bronze_table
+          depends_on:
+            - task_key: ingest
+          spark_python_task:
+            python_file: ./bronze/02_build_bronze_table.py
+          environment_key: default
+
+        - task_key: silver
+          depends_on:
+            - task_key: bronze_table
+          spark_python_task:
+            python_file: ./silver/01_build_smard_hourly.py
+          environment_key: default
+
+        - task_key: gold
+          depends_on:
+            - task_key: silver
+          spark_python_task:
+            python_file: ./gold/01_build_features.py
+          environment_key: default
+
         - task_key: predict
+          depends_on:
+            - task_key: silver
           spark_python_task:
             python_file: ./ml/03_predict.py
           environment_key: default
