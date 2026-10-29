@@ -164,31 +164,13 @@ Late October 2026 was extremely volatile (an evening peak of ~560 €/MWh on 29 
 
 ---
 
-## Run it yourself
-
-**Prerequisites:** a Databricks workspace (Free Edition works), the [Databricks CLI](https://docs.databricks.com/dev-tools/cli/), VS Code with the Databricks extension, and [uv](https://docs.astral.sh/uv/).
-
-1. **Clone and install**
-   ```bash
-   git clone https://github.com/yassmine-elaiadi/Databricks-German-Electricity-Price-Forecasting.git
-   cd Databricks-German-Electricity-Price-Forecasting
-   uv sync
-   ```
-2. **Log in** with a CLI profile, then point the project at your workspace:
-   - `databricks auth login --profile <your_profile>`
-   - set `host` in `databricks.yml`, `PROFILE` in `common/env.py`, and the MLflow `EXPERIMENT` path in `ml/01_train_model.py`
-3. **Create the catalog, schemas and Volume:** run `setup/00_create_catalog_and_schemas.py`
-4. **Deploy the bundle:** `databricks bundle deploy`
-5. **Load the history:** run the `ingest_smard` job (first run downloads ~2,100 weekly files, ~15 min), then `bronze/02_build_bronze_table.py`, `silver/01_build_smard_hourly.py` and `gold/01_build_features.py`
-6. **Train and register the model:** run `ml/01_train_model.py`, then give the registered version the alias **`champion`** in Catalog Explorer
-7. **Run the pipeline:** start `daily_pipeline` once by hand; after that it runs every day at 08:00
-8. **Evaluation and dashboard:** run `explorations/08_prediction_eval.sql` once to create the view, then build the dashboard on `gold.price_predictions` and `gold.prediction_eval`
-
----
-
 ## Next steps
 
 - **v1.1 features**, driven by the error analysis: a public-holiday flag and **SMARD's day-ahead forecasts** of load / wind / solar (the weather information the model is missing on spike and crash days) → retrain, register as version 2, move `@champion`
 - Compare model versions on a **fixed** test window (the test set currently grows with every new day)
 - **v2:** weather forecasts (Open-Meteo), gas and CO₂ prices, 15-minute forecasts
 - A dashboard schedule right after the job, and alerts when the job fails
+
+---
+
+© 2026 Yassmine El Aiadi. All rights reserved. This repository is shared as a portfolio project; please don't reuse the code without permission.
