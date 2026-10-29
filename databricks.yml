@@ -7,18 +7,6 @@ bundle:
 
 resources:
   jobs:
-    api_test:
-      name: api_test
-      tasks:
-        - task_key: run_api_test
-          spark_python_task:
-            python_file: ./api_test.py
-          environment_key: default
-      environments:
-        - environment_key: default
-          spec:
-            environment_version: "5"
-
     ingest_smard:
       name: ingest_smard
       tasks:
